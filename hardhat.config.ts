@@ -1,11 +1,13 @@
 import type { HardhatUserConfig } from "hardhat/config";
 import { configVariable } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-mocha-ethers";
-import hardhatKeystore from "@nomicfoundation/hardhat-keystore"; // enables `hardhat keystore ...`
+import "@nomicfoundation/hardhat-ethers";
+import hardhatKeystore from "@nomicfoundation/hardhat-keystore";
+import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers";
 
 const config: HardhatUserConfig = {
     solidity: "0.8.24",
-    plugins: [hardhatKeystore],
+    plugins: [hardhatKeystore, hardhatEthersPlugin],
     networks: {
         // In-memory local network (v3 discriminator)
         hardhat: { type: "edr-simulated" },
