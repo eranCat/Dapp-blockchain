@@ -1,163 +1,87 @@
-# TeaToken (ERC-20) — Hardhat 3 + TypeScript
+# ⛓️ Dapp Blockchain
 
-A minimal ERC-20 token project using **Hardhat 3**, **TypeScript**, and the official **hardhat-ethers** plugin. The plugin exposes an `ethers` object **on each network connection** (HH3 style), which is what the deploy & console examples use. ([npm][1])
+A decentralized application (DApp) built on Ethereum using Solidity smart contracts, Hardhat development framework, and TypeScript.
 
-## Prerequisites
+## Tech Stack
 
-* Node.js 18+ and npm
-* Hardhat & the ethers plugin installed in this repo:
+| Layer | Technology |
+|-------|------------|
+| Smart Contracts | Solidity |
+| Dev Framework | Hardhat |
+| Language | TypeScript |
+| Testing | Hardhat Test (Chai/Mocha) |
+| Network | Ethereum (local + testnet) |
 
-  ```bash
-  npm i -D hardhat @nomicfoundation/hardhat-ethers
-  npm i ethers
-  ```
+## Features
 
-  The plugin integrates ethers.js into Hardhat and adds `ethers` to each network connection. ([npm][1])
+- **Smart contract development** — Solidity contracts with full test coverage
+- **Local blockchain** — Hardhat Network for fast local development
+- **TypeScript scripts** — typed deployment and interaction scripts
+- **Contract artifacts** — ABI + bytecode generated on compile
+- **Testnet ready** — configurable for Sepolia, Goerli or mainnet
 
-## Project layout
+## Project Structure
 
 ```
-contracts/
-  TeaToken.sol
-scripts/
-  deploy.ts
-hardhat.config.ts
-tsconfig.json
+├── contracts/         # Solidity smart contracts
+├── scripts/           # Deployment & interaction scripts
+├── artifacts/         # Compiled contract ABIs and bytecode
+├── hardhat.config.ts  # Hardhat configuration
+└── tsconfig.json      # TypeScript config
 ```
 
-## Compile
+## Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm
+
+### Setup
+
+```bash
+git clone https://github.com/eranCat/Dapp-blockchain.git
+cd Dapp-blockchain
+npm install
+```
+
+### Compile Contracts
 
 ```bash
 npx hardhat compile
 ```
 
-## Deploy (local, in-process network)
-
-Use the HH3 plugin pattern (`network.connect()` then destructure `ethers`):
-
-```ts
-// scripts/deploy.ts
-import { network } from "hardhat";
-
-async function main() {
-  const { ethers } = await network.connect();
-
-  const [deployer] = await ethers.getSigners();
-  console.log("Deploying with:", await deployer.getAddress());
-
-  const token = await ethers.deployContract("TeaToken"); // or getContractFactory if you prefer
-  await token.waitForDeployment();
-
-  console.log("TeaToken:", await token.getAddress());
-}
-
-main().catch((e) => { console.error(e); process.exit(1); });
-```
-
-Run it:
+### Run Tests
 
 ```bash
-npx hardhat run scripts/deploy.ts
+npx hardhat test
 ```
 
-You should see something like:
-
-```
-Deploying with: 0xf39F...2266
-TeaToken: 0x5FbDB2...0aa3
-```
-
-The 20 unlocked local accounts (each with 10,000 ETH) are provided by Hardhat Network by default. ([Hardhat][2])
-
-## (Optional) Run a persistent local node
-
-If you want the chain to keep state between commands:
+### Deploy Locally
 
 ```bash
+# Start local node
 npx hardhat node
-# in another terminal:
+
+# In another terminal
 npx hardhat run scripts/deploy.ts --network localhost
 ```
 
-Hardhat Network exposes an RPC and the same 20 funded accounts when you run a node. ([Hardhat][2])
-
-## Interact in the Hardhat console
+### Deploy to Testnet
 
 ```bash
-npx hardhat console
-```
-
-```ts
-const { ethers } = await network.connect();
-const addr = "0x...your deployed token address...";
-const tea = await ethers.getContractAt("TeaToken", addr);
-await tea.name();          // "Tea Token"
-await tea.symbol();        // "TEA"
-(await tea.totalSupply()).toString();
-```
-
-`getContractAt`, `getContractFactory`, `getSigners`, and `deployContract` are provided by the hardhat-ethers plugin. ([npm][1])
-
-## Deploy to a testnet (example: Sepolia)
-
-1. Add a network to `hardhat.config.ts` (use env vars for secrets):
-
-```ts
-import { HardhatUserConfig } from "hardhat/config";
-import hardhatEthers from "@nomicfoundation/hardhat-ethers";
-
-const config: HardhatUserConfig = {
-  solidity: "0.8.24",
-  networks: {
-    sepolia: {
-      url: process.env.SEPOLIA_RPC_URL || "",
-      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : []
-    }
-  },
-  plugins: [hardhatEthers],
-};
-export default config;
-```
-
-2. Deploy:
-
-```bash
-SEPOLIA_RPC_URL=https://... \
-DEPLOYER_PRIVATE_KEY=0xabc... \
+# Add your private key and RPC URL to .env
 npx hardhat run scripts/deploy.ts --network sepolia
 ```
 
-## Notes on ERC-20 + Permit (OZ v5)
+### Environment Variables
 
-If you enabled **EIP-2612 permit** (gasless approvals) in your token, the correct import in OpenZeppelin **v5** is:
-
-```solidity
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+```env
+PRIVATE_KEY=your_wallet_private_key
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/your_key
 ```
 
-(OZ v5 exposes `ERC20Permit` directly; older v4 projects used `draft-ERC20Permit.sol`.) ([OpenZeppelin Docs][3])
+> ⚠️ Never commit your private key. Use `.env` and ensure it's in `.gitignore`.
 
-## Troubleshooting
+## Author
 
-* **`Property 'ethers' does not exist on type 'HardhatRuntimeEnvironment'`**
-  Make sure the plugin is installed and registered. With Hardhat 3, import the plugin and **add it to the `plugins` array**, then access `ethers` via `const { ethers } = await network.connect()`:
-
-  ```ts
-  import hardhatEthers from "@nomicfoundation/hardhat-ethers";
-  export default { plugins: [hardhatEthers] };
-  ```
-
-  Example usage is shown in the plugin README. ([npm][1])
-
-* **Local accounts & funds**
-  If you don’t see funds or accounts: remember Hardhat Network provides **20 unlocked accounts with 10,000 ETH each** by default. ([Hardhat][2])
-
-* **Script style**
-  When deploying from scripts in HH3+TS, you can use `ethers.deployContract("YourContract")` or `getContractFactory("YourContract").deploy(...)`. Both are documented in the plugin README. ([npm][1])
-
-## References
-
-* **hardhat-ethers plugin (v4) — install, `plugins` array, `network.connect()`, `deployContract`, `getSigners`, etc.** ([npm][1])
-* **Hardhat docs — config & default accounts (20 accounts, 10,000 ETH each)** ([Hardhat][2])
-* **Deploying via Hardhat scripts (Ignition + scripts guide)** — general script guidance. ([Hardhat][4])
-* **OpenZeppelin Contracts v5 — ERC-20 API & `ERC20Permit`** (correct import in v5). ([OpenZeppelin Docs][3])
+**Eran Karaso** — [Portfolio](https://erancat.github.io/portfolio-site) · [GitHub](https://github.com/eranCat)
